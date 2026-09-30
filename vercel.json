@@ -1,0 +1,19 @@
+{
+  "rewrites": [
+    { "source": "/api/auth/(.*)", "destination": "/api/auth?action=$1" },
+    { "source": "/api/auth", "destination": "/api/auth" },
+    { "source": "/api/users/(.*)", "destination": "/api/users?action=$1" },
+    { "source": "/api/users", "destination": "/api/users" },
+    { "source": "/api/conversations/(.*)", "destination": "/api/conversations?action=$1" },
+    { "source": "/api/conversations", "destination": "/api/conversations" },
+    { "source": "/api/messages/(.*)", "destination": "/api/messages?action=$1" },
+    { "source": "/api/messages", "destination": "/api/messages" },
+    { "source": "/api/groups/(.*)", "destination": "/api/groups?action=$1" },
+    { "source": "/api/groups", "destination": "/api/groups" },
+    { "source": "/api/stickers", "destination": "/api/stickers" },
+    { "source": "/api/upload", "destination": "/api/upload" },
+    { "source": "/api/pusher/auth", "destination": "/api/pusher" },
+    { "source": "/api/realtime/stream", "destination": "/api/realtime" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
