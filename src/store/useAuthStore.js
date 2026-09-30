@@ -38,9 +38,11 @@ export const useAuthStore = create((set, get) => ({
         set({ user: res.data.user, isAuthenticated: true, isLoading: false });
         await get().initE2EEKeys(res.data.user);
       } else {
+        localStorage.removeItem('pulsechat_token');
         set({ user: null, isAuthenticated: false, isLoading: false });
       }
     } catch (err) {
+      localStorage.removeItem('pulsechat_token');
       set({ user: null, isAuthenticated: false, isLoading: false });
     }
   },
@@ -53,11 +55,12 @@ export const useAuthStore = create((set, get) => ({
       if (keys) payload.publicKey = keys.publicKey;
 
       const res = await apiClient.post('/auth/login', payload);
-      if (res.success) {
-        if (res.data.user) {
-          if (keys) storePrivateKey(res.data.user._id, keys.privateKey);
-          set({ user: res.data.user, isAuthenticated: true, isLoading: false, privateKey: keys?.privateKey });
+      if (res.success && res.data.user) {
+        if (res.data.token) {
+          localStorage.setItem('pulsechat_token', res.data.token);
         }
+        if (keys) storePrivateKey(res.data.user._id, keys.privateKey);
+        set({ user: res.data.user, isAuthenticated: true, isLoading: false, privateKey: keys?.privateKey });
         return res.data;
       }
     } catch (err) {
@@ -69,9 +72,22 @@ export const useAuthStore = create((set, get) => ({
   signup: async (formData) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await apiClient.post('/auth/signup', formData);
-      set({ isLoading: false });
-      return res.data;
+      const keys = await generateE2EEKeyPair();
+      const payload = { ...formData };
+      if (keys) payload.publicKey = keys.publicKey;
+
+      const res = await apiClient.post('/auth/signup', payload);
+      if (res.success && res.data.user) {
+        if (res.data.token) {
+          localStorage.setItem('pulsechat_token', res.data.token);
+        }
+        if (keys) storePrivateKey(res.data.user._id, keys.privateKey);
+        set({ user: res.data.user, isAuthenticated: true, isLoading: false, privateKey: keys?.privateKey });
+        return res.data;
+      } else {
+        set({ isLoading: false });
+        return res.data;
+      }
     } catch (err) {
       set({ error: err.message, isLoading: false });
       throw err;
@@ -87,6 +103,9 @@ export const useAuthStore = create((set, get) => ({
 
       const res = await apiClient.post('/auth/verify-otp', payload);
       if (res.success && res.data.user) {
+        if (res.data.token) {
+          localStorage.setItem('pulsechat_token', res.data.token);
+        }
         if (keys) storePrivateKey(res.data.user._id, keys.privateKey);
         set({ user: res.data.user, isAuthenticated: true, isLoading: false, privateKey: keys?.privateKey });
       }
@@ -103,6 +122,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (e) {
       console.error('Logout error:', e);
     } finally {
+      localStorage.removeItem('pulsechat_token');
       set({ user: null, isAuthenticated: false, privateKey: null });
     }
   },

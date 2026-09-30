@@ -10,6 +10,15 @@ export const apiClient = axios.create({
   },
 });
 
+// Request interceptor to attach JWT token from localStorage
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('pulsechat_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Response interceptor for consistent error handling
 apiClient.interceptors.response.use(
   (response) => response.data,
